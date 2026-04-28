@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>張岱〈海志〉：海天佛國奇幻之旅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 引入古典風格的楷體字型：霞鶩文楷 */
+        @import url('https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&display=swap');
+        
+        body {
+            /* 優先使用霞鶩文楷，若無則使用系統楷體 */
+            font-family: 'LXGW WenKai TC', 'DFKai-SB', 'STKaiti', 'KaiTi', serif;
+            background-color: #1a1a1a;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1200px;
+            max-height: 800px;
+            margin: 0 auto;
+            background-color: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 背景層級設定 */
+        .bg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 1s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .bg-intro { background: linear-gradient(135deg, #2c3e50, #000000); }
+        .bg-past { background: linear-gradient(135deg, #8E2DE2, #4A00E0); }
+        .bg-poor { background: linear-gradient(135deg, #3a3a3a, #121212); }
+        .bg-sea { background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); }
+        .bg-beach { background: linear-gradient(to bottom, #4ca1af, #c4e0e5, #e6d070); }
+        .bg-temple { background: linear-gradient(to bottom, #870000, #190a05); }
+        .bg-cliff { background: linear-gradient(to bottom, #141e30, #243b55); }
+        .bg-cave { background: linear-gradient(to bottom, #000000, #1a1a1a, #0a0a0a); }
+        .bg-mountain { background: linear-gradient(to bottom, #2980B9, #6DD5FA, #ffffff); }
+
+        /* 對話框 */
+        #dialog-box {
+            position: absolute;
+            bottom: 5%;
+            left: 5%;
+            width: 90%;
+            height: 25%;
+            background: rgba(0, 0, 0, 0.75);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px 30px;
+            box-sizing: border-box;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            cursor: pointer;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
+        }
+
+        #speaker-name {
+            font-size: 1.6rem;
+            color: #d4af37; /* 金色 */
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px black;
+            letter-spacing: 2px;
+        }
+
+        #dialog-text {
+            font-size: 1.35rem;
+            line-height: 1.6;
+            flex-grow: 1;
+            letter-spacing: 1px;
+        }
+
+        .typing-cursor::after {
+            content: '▼';
+            animation: blink 1s step-end infinite;
+            font-size: 1rem;
+            color: #d4af37;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* 選項 */
+        #choices-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 20;
+            width: 60%;
+        }
+
+        .choice-btn {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #d4af37;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-family: inherit;
+            letter-spacing: 2px;
+        }
+
+        .choice-btn:hover {
+            background: rgba(212, 175, 55, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* 主選單 */
+        #main-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #2c3e50;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            color: white;
+        }
+
+        .title {
+            font-size: 4.5rem;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+            letter-spacing: 6px;
+        }
+
+        .subtitle {
+            font-size: 1.6rem;
+            margin-bottom: 50px;
+            color: #ccc;
+            letter-spacing: 4px;
+        }
+
+        .start-btn {
+            font-size: 1.8rem;
+            padding: 15px 50px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            letter-spacing: 4px;
+        }
+
+        .start-btn:hover {
+            background: #d4af37;
+            color: black;
+            box-shadow: 0 0 15px #d4af37;
+        }
+
+        /* 角色圖標 (Emoji Fallback) */
+        #character-sprite {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 15rem;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            transition: opacity 0.5s, transform 0.5s;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .sprite-enter {
+            opacity: 1 !important;
+            transform: translate(-50%, 10px) !important;
+        }
+
+        /* 自訂圖床立繪的 CSS 樣式 */
+        #character-img {
+            position: absolute;
+            bottom: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            max-height: 65%;
+            max-width: 90%;
+            object-fit: contain;
+            transition: opacity 0.5s, transform 0.5s;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .img-enter {
+            opacity: 1 !important;
+            transform: translate(-50%, 10px) !important;
+        }
+
+        /* 音樂控制按鈕區塊 */
+        #music-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .top-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            letter-spacing: 1px;
+            display: none;
+        }
+
+        .top-btn:hover {
+            background: rgba(212, 175, 55, 0.3);
+            transform: scale(1.05);
+        }
+
+        .flash {
+            animation: whiteFlash 0.5s ease-out;
+        }
+
+        @keyframes whiteFlash {
+            0% { background-color: rgba(255,255,255,1); z-index: 99; position: absolute; inset:0; }
+            100% { background-color: rgba(255,255,255,0); z-index: -1; }
+        }
+
+        #flash-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- 背景音樂：預設為維基百科開源古琴曲《流水》(較不易被擋) -->
+    <audio id="bgm" loop preload="auto">
+        <source id="audio-source" src="https://upload.wikimedia.org/wikipedia/commons/6/65/Guqin_-_Flowing_Water.ogg" type="audio/ogg">
+    </audio>
+
+    <div id="game-container">
+        <div id="bg-layer" class="bg-layer bg-intro"></div>
+        <div id="flash-overlay"></div>
+
+        <!-- 音樂控制區 -->
+        <div id="music-controls">
+            <!-- 隱藏的檔案上傳標籤 -->
+            <input type="file" id="bgm-upload" accept="audio/*" style="display: none;">
+            <button id="upload-btn" class="top-btn" onclick="document.getElementById('bgm-upload').click()">📂 載入自訂音樂</button>
+            <button id="music-btn" class="top-btn" onclick="toggleMusic()">🎵 音樂: 關</button>
+        </div>
+
+        <!-- ========================================================================================= -->
+        <!-- 🌟🌟🌟 【遊戲封面圖設定】 🌟🌟🌟 -->
+        <!-- 將下方 url('') 的單引號內填入「封面圖片網址」，留空則顯示黑色底色。 -->
+        <!-- ========================================================================================= -->
+        <div id="main-menu" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://i.postimg.cc/4dnqRKBY/封面圖.jpg');">
+            <div class="title">張岱〈海志〉</div>
+            <div class="subtitle">海天佛國奇幻之旅 (視覺小說版)</div>
+            <button class="start-btn" onclick="startGame()">開始回憶</button>
+        </div>
+
+        <div id="character-sprite">📜</div>
+        <img id="character-img" src="" alt="立繪">
+
+        <div id="in-game-ui" style="display: none;">
+            <div id="choices-container"></div>
+            <div id="dialog-box" onclick="advanceStory()">
+                <div id="speaker-name"></div>
+                <div id="dialog-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================================================
+        // 🌟🌟🌟 【劇本內容與圖片設定區】 🌟🌟🌟
+        // =========================================================================================================
+        // 以下是遊戲的所有對話內容。為了方便您插入圖片，每一句話都設計成了兩行：
+        //
+        // 第 1 行：speaker (說話者)、text (對話內容)、bg (預設背景色)、sprite (預設Emoji)。
+        // 第 2 行：bgImg (場景圖網址)、charImg (立繪圖網址)。
+        //
+        // 🖼️ 插入場景圖：在 `bgImg: ""` 的雙引號內貼上網址。 例如 -> bgImg: "https://i.imgur.com/bg.jpg"
+        // 👤 插入立繪圖：在 `charImg: ""` 的雙引號內貼上網址。 例如 -> charImg: "https://i.imgur.com/char.png"
+        //
+        // 💡 溫馨提示：
+        // 如果您把雙引號內「留空 (什麼都沒填)」，系統就會自動採用預設的漸層背景和 Emoji 表情喔！
+        // =========================================================================================================
+
+        const story = [
+            // --- 第一幕：生平綱要與自傳 ---
+            { 
+                speaker: "", text: "（這是一篇關於明末清初散文家——張岱的回憶錄...）", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/Px8yM1S9/1_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我是張岱，字宗子，號陶庵。今天，我想說個故事。", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/76T9NSKt/1_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */
+            },
+            { 
+                speaker: "張岱", text: "我出身書香世家，三代進士，家境富裕。少為紈絝子弟，極愛繁華。", bg: "bg-past", 
+                bgImg: "https://i.postimg.cc/nrbkSM58/1_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "那時的我，好精舍，好美婢，好孌童，好鮮衣，好美食，好駿馬，好華燈，好煙火...", bg: "bg-past", 
+                bgImg: "https://i.postimg.cc/HWX3c4cW/1_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我精通各種玩樂，品茶、賞橘、聽戲、遊山玩水，人稱『茶淫橘虐，書蠹詩魔』。", bg: "bg-past", 
+                bgImg: "https://i.postimg.cc/cH8hcfFP/1_5.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+
+            // --- 第二幕：旅遊愛好 ---
+            { 
+                speaker: "張岱", text: "其實我自少便愛嬉遊。常在紹興城內龐公池備著小舟，興致一來便乘船外出，恣意探討名山。", bg: "bg-past", 
+                bgImg: "https://i.postimg.cc/vmCLDcGB/2_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我的旅遊路線多沿著南北大運河，遍及浙江、江蘇、安徽、山東的繁華都會。", bg: "bg-past", 
+                bgImg: "https://i.postimg.cc/B6D5F4vw/2_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "在我文集中，僅存的兩大長篇山水遊記，一篇是寫山東泰山的〈岱志〉，另一篇，便是浙江普陀山的〈海志〉。", bg: "bg-past", 
+                bgImg: "https://i.postimg.cc/KzL7TxYC/2_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+
+            // --- 第三幕：遭遇變故 ---
+            { 
+                speaker: "張岱", text: "然而，到了四十八歲那年，明朝覆亡，國破家亡。我曾於南明小朝廷供職，後來逃避戰亂遁入深山，寄居佛寺。", bg: "bg-poor", 
+                bgImg: "https://i.postimg.cc/13jDYfnL/3_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "那時所剩下的，只有破床碎几，折鼎病琴，與殘書數帙而已。布衣蔬食，常至斷炊。", bg: "bg-poor", 
+                bgImg: "https://i.postimg.cc/K8HtsRkw/3_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */
+            },
+            { 
+                speaker: "張岱", text: "回首二十年前的繁華，真如隔世，勞碌半生，皆成夢幻...", bg: "bg-poor", 
+                bgImg: "https://i.postimg.cc/W1H0fhFH/3_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我用近乎遊戲的筆墨、自嘲戲謔的口吻寫下〈自為墓誌銘〉，並著《陶庵夢憶》與《西湖夢尋》，持向佛前，一一懺悔。", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/cLHQmQH2/3_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            
+            // --- 第四幕：宗教信仰與出遊動機 ---
+            { 
+                speaker: "張岱", text: "說到佛前懺悔...其實我本身並不篤信佛教。但我母親陶氏卻是位誠心拜佛的信徒。", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/Bb4F1Fkq/4_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "崇禎十一年，我做了一個決定——前往寧波海上的『普陀山』參加四月初三的觀音誕。在那進香的一個多月裡，我甚至謹守持齋戒律。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/7hwzTzdZ/4_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "普陀山，是中國四大佛教名山之一，更是四大菩薩道場中『唯一座落海上』的勝地，有『海天佛國』的美譽。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/1XsFNF2z/4_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+
+            // --- 第五幕：普陀山深度傳說 ---
+            { 
+                speaker: "張岱", text: "你知道普陀山為何如此神秘，甚至古人將其稱為『海上仙山』嗎？", bg: "bg-sea", choices: [{text: "聽說有很多不可思議的傳說？"}],
+                bgImg: "https://i.postimg.cc/66C8Xfz2/5_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "沒錯。傳說秦始皇曾將這裡認定爲『蓬萊山』，特地派人來此求長生不老藥。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/FF0Y4VGL/5_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "歷史上有諸多道士慕名前來。相傳西漢平帝元始年間，著名道士梅福就到此山隱居。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/s2t2FMh4/5_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "故此山自西漢至宋代時，其實叫作『梅岑山』，古來已是佛道信仰的聖地。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/nL6L8XDY/5_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "到了唐代，普陀山更是迎來了改變它命運的神蹟。首先是『潮音洞焚指供佛』。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/cJKJ5Rrh/5_5.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "當時有位天竺國來的僧人，在潮音洞邊點燃手指供奉佛祖，竟然真的引起觀世音菩薩現身！", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/Dfc76jBM/5_6.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "後來潮音洞旁常有信徒來此效仿焚指，引起僧團和官府的禁止，告誡禁止燃指的石碑至今仍在。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/wxk92f0Z/5_7.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "而另一個傳說，便是西元858年的『不肯去觀音』。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/PfMdy324/5_8.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "日本臨濟宗高僧慧鍔參訪五台山，請得一尊觀音菩薩像準備回國。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/05C9nWc4/5_9.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "行至現在的舟山群島普陀山要坐船離島時，突然海上狂風起，巨浪沖天，慧鍔只好停下待風浪平息。", bg: "bg-sea", flash: true, 
+                bgImg: "https://i.postimg.cc/MZYz5Pdg/5_10.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "隔天，慧鍔準備再度啟程，豈料海上忽然又升起白霧，擋住視線。他左右繞道，卻鬼使神差又繞回了島上。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/9MVvqV57/5_11.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "第三天終於天氣晴朗，慧鍔強行出海。可是越往前風浪越大，海面上竟升起諸多『鐵蓮花』圍住行船！", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/1R7jyDtw/5_12.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "慧鍔大驚，請出菩薩像祈求指點明路。此時海中鑽出一頭『鐵牛』，吞掉鐵蓮花，一條海路出現在眼前。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/8PFncsJY/5_13.png", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "慧鍔的船一路跟隨駛進普陀山。他感歎『觀音菩薩不肯離去此地』，便建起不肯去觀音院，此山也視作觀音道場而流行起來。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/PfVRd1x8/5_14.png", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "宋代時，人們見此山光明清淨，多有小白花，符合《華嚴經》對『普陀洛迦山』的描述，便漸漸改名。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/VL3ZC1nV/5_15.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "再後來，當地將兩座大山分別叫做普陀山和珞珈山，一般我們仍簡稱它為『普陀山』。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/wjLf5PkW/5_16.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "崇禎十一年的這趟旅程，我寫成了〈海志〉。就讓我帶你重遊這充滿地理與人文奇觀的佛國吧。", bg: "bg-sea", 
+                bgImg: "https://i.postimg.cc/52L75Gmp/5_17.png", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+
+            // --- 第六幕：千步沙 ---
+            { 
+                speaker: "", text: "（竹轎子來了，我一路往北走，過了山峰，到了『千步沙』...）", bg: "bg-beach", flash: true, 
+                bgImg: "https://i.postimg.cc/tg0pmTWZ/6_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "之所以會叫『千步沙』，是因為從這片沙灘走到鎮海寺大約有一千步的距離。", bg: "bg-beach", 
+                bgImg: "https://i.postimg.cc/43CsFdVn/6_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "你看這沙，經過海水不斷的淘洗，沙子呈現了紫金色，在陽光的照射下閃閃發光。", bg: "bg-beach", 
+                bgImg: "https://i.postimg.cc/FKtNnR3H/6_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "這片沙灘在東洋大海的沖刷下，隨著潮汐起伏，海水一下噴出沙子，一下又將沙子吸進去。", bg: "bg-beach", 
+                bgImg: "https://i.postimg.cc/6Qst13n8/6_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我站在旁邊仔細觀察，看起來就像人呼吸的樣子，不分日夜，速度不快不慢。大概這就是海消長變化的樣子吧。", bg: "bg-beach", 
+                bgImg: "https://i.postimg.cc/3wMYbRmm/6_5.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+
+            // --- 第七幕：鎮海寺 ---
+            { 
+                speaker: "", text: "（離開千步沙，走了五里路後...）", bg: "bg-temple", flash: true, 
+                bgImg: "https://i.postimg.cc/W3NRQJ3s/7_1.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "這裡就是鎮海寺，也就是普陀山的『後寺』。廟宇建築華麗，完全不輸給普陀山的前寺。", bg: "bg-temple", 
+                bgImg: "https://i.postimg.cc/zvvsfZT8/7_2.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "但是...這裡的香火卻十分荒涼，不及前寺的十分之一！", bg: "bg-temple", choices: [{text:"為什麼會這樣？"}],
+                bgImg: "https://i.postimg.cc/RFSrjnFq/7_3.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "因為前寺從登岸走到寺門，一路上有非常多的商店、旅舍。雖然很接近海，卻完全看不到海。", bg: "bg-temple", 
+                bgImg: "https://i.postimg.cc/Rhhk05Kb/7_4.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "就像泰山的元君殿一樣，在泰山中，卻看不到泰山的全貌。風水家稱之為『納氣藏風』，看起來跟一般的熱鬧城市沒有什麼差別。", bg: "bg-temple", 
+                bgImg: "https://i.postimg.cc/Pf7cM71c/7_5.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "若是後寺，步入寺門可見到山，出寺門就可看到大海，寬敞又開拓。海的潮汐與山中的雲氣一覽無遺。", bg: "bg-temple", 
+                bgImg: "https://i.postimg.cc/DZyDCkj0/7_6.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "但土地的氣息卻未免單薄了些。可見地理位置的藏風聚氣能力，直接影響了人文活動的興衰啊。", bg: "bg-temple", 
+                bgImg: "https://i.postimg.cc/9XkSBkys/7_7.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+
+            // --- 第八幕：饑飽嶺 ---
+            { 
+                speaker: "", text: "（經過了饑飽嶺，山的周圍都是安靜的房舍。但往嶺下一看...）", bg: "bg-cliff", flash: true, 
+                bgImg: "https://i.postimg.cc/vB4SY0LT/8_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "在嶺上可以看到將近一千艘的釣魚船，如魚鱗般緊密排列。捕捉魚類的利益十分龐大，吸引了近萬人競相參與，大肆殺戮！", bg: "bg-cliff", 
+                bgImg: "https://i.postimg.cc/50Xk4sqX/8_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "張岱", text: "可恨的是，嶺下的礁石岩穴，沒有一處不被魚腥沾染的。這可是一片清淨、法喜充滿的海域啊！", bg: "bg-cliff", 
+                bgImg: "https://i.postimg.cc/gJxBzgqn/8_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "居然容許百姓們殺害這麼多的無辜生命！輪迴報應之說在佛門聖地完全不管用，又能怎麼樣呢！", bg: "bg-cliff", 
+                bgImg: "https://i.postimg.cc/G24SLXJB/8_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我以知識人的視角質疑這利益殺戮與佛法教義的衝突，卻也只能以普通遊客的身份無奈旁觀。", bg: "bg-cliff", 
+                bgImg: "https://i.postimg.cc/B6R7X2ML/8_5.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+
+            // --- 第九幕：梵音洞 ---
+            { 
+                speaker: "", text: "（離開後寺又走了十里路，到了梵音洞...）", bg: "bg-cave", flash: true, 
+                bgImg: "https://i.postimg.cc/fRM2tzjv/9_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "這個洞看起來像是潮音洞的回聲，狹窄而幽深。我們得沿著石窟中的羊腸小徑一路往下走。", bg: "bg-cave",
+                bgImg: "https://i.postimg.cc/T3T7LdqJ/9_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "洞中上方懸吊著一條大繩索，繩索磨著我的胸膛，一邊還要扛抬大石頭，就好像一隻壁虎一樣。", bg: "bg-cave", 
+                bgImg: "https://i.postimg.cc/HkTZcY4z/9_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "到了洞前，橫跨過石橋，看遠望洞中是一片黑暗。要是瞇著眼在日光下仔細的看，可以看見洞中有蓬勃的煙氣。", bg: "bg-cave", 
+                bgImg: "https://i.postimg.cc/htKyzDbM/9_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "站在光亮的地方往暗的地方看，可以看見洞中石頭上有很多苔蘚的斑痕，隨著人的不停想像，就變成了不同的形相...", bg: "bg-cave", 
+                bgImg: "https://i.postimg.cc/Dw7jJvdD/9_5.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "像是看見了菩薩、鬼王、或是神明。大家聽到彼此講的這些經歷後，也只有互相讚歎而已。", bg: "bg-cave", 
+                bgImg: "https://i.postimg.cc/13yCnmck/9_6.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "這便是地理環境對人類感官與想像的催化。不過說來慚愧，後來我與友人前往寧波阿育王寺時...", bg: "bg-cave", 
+                bgImg: "https://i.postimg.cc/g0TNTvFb/9_7.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "我也自稱從寺內所藏的佛舍利子中，看到了一尊白衣觀音小像顯形。人啊，終究容易被環境與心念影響。", bg: "bg-cave", 
+                bgImg: "https://i.postimg.cc/GtkKtV4V/9_8.png", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+
+            // --- 第十幕：山頂東望 ---
+            { 
+                speaker: "", text: "（最後，我們登上了普陀山高處。在山上向東邊望去...）", bg: "bg-mountain", flash: true, 
+                bgImg: "https://i.postimg.cc/288t4wh9/10_1.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "一片深邃無際。三韓、日本、扶桑等諸島，遠處如同一條青色的螺殼，看起來深遠蒼茫。", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/CLL2jNkP/10_2.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "從遠近不同距離來看這些山峰，大的像拳頭，小的像栗子，低而平的看起來就像眉毛。", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/WbbyMngf/10_3.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "這些小山丘看起來就像一朵朵含苞未放的花朵，經過風與浪長期不斷的風化侵蝕，如果不是石胎的樣貌就沒有辦法存活。", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/mZSqzq1W/10_4.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "普陀山，就如同天地間的柱礎與門檻，屹立不搖。", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/cLP5GG23/10_5.jpg", /* ⬅️ 🖼️ 場景圖網址 */
+            },
+            { 
+                speaker: "張岱", text: "回顧中國的遊記傳統，從求法僧玄奘的《大唐西域記》，到謝靈運、王維的山水詩...", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/Qt34VkXd/10_6.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "再到柳宗元的〈永州八記〉，以及蘇軾、徐霞客等文人的遊記。我們為何而寫？", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/MTSPXbWZ/10_7.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "那是因為發現了美景不願私有，想分享給大家；更是為了將情感與山水相融，將人文關懷賦予景色。", bg: "bg-mountain", 
+                bgImg: "https://i.postimg.cc/XJbHXcVj/10_8.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "張岱", text: "自然山水不會因為朝代更迭而改變。我張岱的半生繁華已成大夢，但這片海、這座山，我特地在這裡留下了蹤跡。", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/xC3smJC2/10_9.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            },
+            { 
+                speaker: "", text: "（回憶結束。這份充滿地理觀察與人文反思的〈海志〉，永遠留存在了文學史中...）", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/Jn5TXDnr/10_10.jpg", /* ⬅️ 🖼️ 場景圖網址 */  
+            },
+            { 
+                speaker: "系統", text: "【遊戲結束 - 感謝您的遊玩】", bg: "bg-intro", 
+                bgImg: "https://i.postimg.cc/tTNr6ZTR/end.jpg", /* ⬅️ 🖼️ 場景圖網址 */ 
+            }
+        ];
+
+        let currentLineIndex = 0;
+        let isTyping = false;
+        let typingTimeout = null;
+        const typingSpeed = 50; 
+
+        const mainMenu = document.getElementById('main-menu');
+        const inGameUi = document.getElementById('in-game-ui');
+        const bgLayer = document.getElementById('bg-layer');
+        const flashOverlay = document.getElementById('flash-overlay');
+        const dialogBox = document.getElementById('dialog-box');
+        const speakerName = document.getElementById('speaker-name');
+        const dialogText = document.getElementById('dialog-text');
+        const choicesContainer = document.getElementById('choices-container');
+        const sprite = document.getElementById('character-sprite');
+        const imgSprite = document.getElementById('character-img'); 
+        
+        const bgm = document.getElementById('bgm');
+        const musicBtn = document.getElementById('music-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const bgmUpload = document.getElementById('bgm-upload');
+        let isMusicPlaying = false;
+
+        // 處理使用者上傳本機音樂的邏輯
+        bgmUpload.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const objectURL = URL.createObjectURL(file);
+                bgm.src = objectURL; 
+                safePlayMusic();
+            }
+        });
+
+        function safePlayMusic() {
+            if (!bgm.src || bgm.src === window.location.href) {
+                musicBtn.innerText = '🎵 無音樂';
+                return;
+            }
+
+            const playPromise = bgm.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isMusicPlaying = true;
+                    musicBtn.innerText = '🎵 音樂: 開';
+                }).catch(error => {
+                    console.log("自動播放被阻擋，需等待互動:", error);
+                    isMusicPlaying = false;
+                    musicBtn.innerText = '🎵 點擊播放';
+                });
+            }
+        }
+
+        function safePauseMusic() {
+            bgm.pause();
+            isMusicPlaying = false;
+            musicBtn.innerText = '🎵 音樂: 關';
+        }
+
+        function toggleMusic() {
+            if (!bgm.src || bgm.src === window.location.href) {
+                alert("目前沒有音樂，請點擊【📂 載入自訂音樂】選擇本機的 MP3 檔案！");
+                return;
+            }
+
+            if (isMusicPlaying) {
+                safePauseMusic();
+            } else {
+                safePlayMusic();
+            }
+        }
+
+        function startGame() {
+            mainMenu.style.display = 'none';
+            inGameUi.style.display = 'block';
+            
+            // 顯示音樂控制列
+            const topBtns = document.querySelectorAll('.top-btn');
+            topBtns.forEach(btn => btn.style.display = 'block');
+            
+            safePlayMusic(); 
+
+            currentLineIndex = 0;
+            renderLine();
+        }
+
+        function triggerFlash() {
+            flashOverlay.classList.remove('flash');
+            void flashOverlay.offsetWidth; 
+            flashOverlay.classList.add('flash');
+        }
+
+        function updateBackground(line) {
+            if (line.bgImg) {
+                bgLayer.className = 'bg-layer'; 
+                bgLayer.style.backgroundImage = `url('${line.bgImg}')`;
+            } else {
+                bgLayer.style.backgroundImage = '';
+                bgLayer.className = 'bg-layer ' + (line.bg || '');
+            }
+        }
+
+        function updateSprite(line) {
+            if (line.charImg) {
+                sprite.classList.remove('sprite-enter'); 
+                imgSprite.src = line.charImg; 
+                setTimeout(() => imgSprite.classList.add('img-enter'), 50); 
+            } else if (line.sprite) {
+                imgSprite.classList.remove('img-enter'); 
+                sprite.innerText = line.sprite;
+                sprite.classList.add('sprite-enter'); 
+            } else {
+                sprite.classList.remove('sprite-enter');
+                imgSprite.classList.remove('img-enter');
+            }
+        }
+
+        function renderLine() {
+            if (currentLineIndex >= story.length) return;
+
+            const line = story[currentLineIndex];
+            
+            choicesContainer.innerHTML = '';
+            dialogBox.style.pointerEvents = 'auto'; 
+
+            if (line.flash) triggerFlash();
+            
+            updateBackground(line);
+            updateSprite(line);
+
+            speakerName.innerText = line.speaker;
+            dialogText.innerHTML = '';
+            dialogText.classList.add('typing-cursor');
+            
+            isTyping = true;
+            let charIndex = 0;
+
+            function typeChar() {
+                if (charIndex < line.text.length) {
+                    dialogText.innerHTML += line.text.charAt(charIndex);
+                    charIndex++;
+                    typingTimeout = setTimeout(typeChar, typingSpeed);
+                } else {
+                    finishTyping();
+                }
+            }
+
+            typeChar();
+        }
+
+        function finishTyping() {
+            isTyping = false;
+            clearTimeout(typingTimeout);
+            const line = story[currentLineIndex];
+            dialogText.innerHTML = line.text;
+            
+            if (line.choices && line.choices.length > 0) {
+                dialogBox.style.pointerEvents = 'none'; 
+                dialogText.classList.remove('typing-cursor');
+                
+                line.choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.innerText = choice.text;
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        currentLineIndex++;
+                        renderLine();
+                    };
+                    choicesContainer.appendChild(btn);
+                });
+            }
+        }
+
+        function advanceStory() {
+            const line = story[currentLineIndex];
+            if (line && line.choices && line.choices.length > 0 && !isTyping) {
+                return; 
+            }
+
+            if (isTyping) {
+                finishTyping();
+            } else {
+                currentLineIndex++;
+                if (currentLineIndex < story.length) {
+                    renderLine();
+                } else {
+                    inGameUi.style.display = 'none';
+                    mainMenu.style.display = 'flex';
+                    
+                    const topBtns = document.querySelectorAll('.top-btn');
+                    topBtns.forEach(btn => btn.style.display = 'none');
+                    safePauseMusic(); 
+                }
+            }
+        }
+    </script>
+</body>
+</html>
